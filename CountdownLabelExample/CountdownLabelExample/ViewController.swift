@@ -35,6 +35,7 @@ class ViewController: UIViewController {
 
         // option animation ( using LTMorphing inside )
         countdownLabelAnvil.setCountDownTime(minutes: 60*60)
+        countdownLabelAnvil.timeFormat = "dd:HH:mm:ss"
         countdownLabelAnvil.start()
 
         countdownLabelBurn.setCountDownTime(minutes: 60*60)

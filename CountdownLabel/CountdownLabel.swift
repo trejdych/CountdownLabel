@@ -14,7 +14,7 @@ import UIKit
     @objc optional func countdownFinished()
     @objc optional func countdownCancelled()
     @objc optional func countingAt(timeCounted: TimeInterval, timeRemaining: TimeInterval)
-
+    
 }
 extension TimeInterval {
     var int: Int {
@@ -157,7 +157,7 @@ public class CountdownLabel: LTMorphingLabel {
         self.fromDate = fromDate
         
         targetTime = targetDate.timeIntervalSince(fromDate as Date)
-        currentTime = targetDate.timeIntervalSince(fromDate as Date) 
+        currentTime = targetDate.timeIntervalSince(fromDate as Date)
         diffDate = date1970.addingTimeInterval(targetTime)
         
         updateLabel()
@@ -270,13 +270,35 @@ extension CountdownLabel {
         morphingEnabled = false
     }
     
+    func surplusTime(_ to1970Date: Date) -> String {
+        let calendar = Calendar.init(identifier: .gregorian);
+        var labelText = timeFormat;
+        let comp = calendar.dateComponents([.day, .hour, .minute, .second], from: date1970 as Date, to: to1970Date)
+        
+        if let day = comp.day {
+            labelText = labelText.replacingOccurrences(of: "dd", with: String.init(format: "%02ld", day))
+        }
+        if let hour = comp.hour ,let _ = timeFormat.range(of: "hh"){
+            labelText = labelText.replacingOccurrences(of: "hh", with: String.init(format: "%02ld", hour))
+        }
+        if let hour = comp.hour ,let _ = timeFormat.range(of: "HH"){
+            labelText = labelText.replacingOccurrences(of: "HH", with: String.init(format: "%02ld", hour))
+        }
+        if let minute = comp.minute ,let _ = timeFormat.range(of: "mm"){
+            labelText = labelText.replacingOccurrences(of: "mm", with: String.init(format: "%02ld", minute))
+        }
+        if let second = comp.second ,let _ = timeFormat.range(of: "ss"){
+            labelText = labelText.replacingOccurrences(of: "ss", with: String.init(format: "%02ld", second))
+        }
+        return labelText
+    }
+    
     func updateText() {
         guard diffDate != nil else { return }
-
+        
+        let date = diffDate.addingTimeInterval(round(timeCounted * -1)) as Date
         // if time is before start
-        let formattedText = timeCounted < 0
-            ? dateFormatter.string(from: date1970.addingTimeInterval(0) as Date)
-            : dateFormatter.string(from: diffDate.addingTimeInterval(round(timeCounted * -1)) as Date)
+        let formattedText = surplusTime(date)
         
         if let countdownAttributedText = countdownAttributedText {
             let attrTextInRange = NSAttributedString(string: formattedText, attributes: countdownAttributedText.attributes)
@@ -310,10 +332,10 @@ extension CountdownLabel {
         
         // create
         timer = Timer.scheduledTimer(timeInterval: defaultFireInterval,
-                                                       target: self,
-                                                       selector: #selector(updateLabel),
-                                                       userInfo: nil,
-                                                       repeats: true)
+                                     target: self,
+                                     selector: #selector(updateLabel),
+                                     userInfo: nil,
+                                     repeats: true)
         
         // register to NSrunloop
         RunLoop.current.add(timer, forMode: RunLoopMode.commonModes)
@@ -367,7 +389,7 @@ public class CountdownAttributedText: NSObject {
     internal let text: String
     internal let replacement: String
     internal let attributes: [NSAttributedStringKey: Any]?
-   
+    
     public init(text: String, replacement: String, attributes: [NSAttributedStringKey: Any]? = nil) {
         self.text = text
         self.replacement = replacement
